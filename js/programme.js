@@ -6,7 +6,9 @@ let orderAsc = true; // Boolean détection si tri croissant ASC ou décroissant 
 
 let search = $( " #search " )[ 0 ].value; // String correspondant au champ de recherche (gère le rafraîchissement de la page avec f5)
 
-let countElem = 30; // Nombre d'élement à afficher
+const countElemPage = 30; // Nombre d'élement a afficher au depart et lors de l'appuie sur le bouton 'voir plus'
+
+let countElem = countElemPage; // Nombre d'élement à afficher
 
 /**
  * Fonction pour la gestion du Menu mobile et ordinateur
@@ -87,7 +89,7 @@ function webserviceRequest() {
       return b.page_title.localeCompare( a.page_title );
     } );
 
-    showElements( finalData.slice( countElem - 30, countElem ), finalData.length ); // Éxécution de la fonction d'affichage (affichage de 30 elements a chaque éxécution)
+    showElements( finalData.slice( countElem - countElemPage, countElem ), finalData.length ); // Éxécution de la fonction d'affichage (affichage de countElemPage elements a chaque éxécution)
   } );
 }
 
@@ -99,7 +101,7 @@ function showElements( data, lengthTotal ) {
   // On supprime le bouton 'voir plus' si il existe et on verifie l'appuie sur le bouton 'voir plus'
   if ( $( "#seeMore" ) ) {
     $( "#seeMore" ).remove();
-    if ( countElem === 30 ) {
+    if ( countElem === countElemPage ) {
       $( "#listProgram" ).empty();
     }
   }
@@ -130,11 +132,11 @@ function showElements( data, lengthTotal ) {
     } );
 
     // Verification du nombre d'element afficher et à afficher pour savoir
-    // si un bouton voir plus est nécessaire (30 elements ajoutés à chaque éxécution)
+    // si un bouton voir plus est nécessaire (countElemPage elements ajoutés à chaque éxécution)
     if ( lengthTotal - countElem > 0 ) {
-      $( "#listProgram" ).append( $( "<button id='seeMore' class='btn btn-filtre btn-outline-primary mx-auto'>Voir plus</button>" ) );
+      $( "#listProgram" ).append( $( "<div id='seeMore' class='col-md-12'><button class='btn d-block btn-filtre btn-outline-primary mx-auto'>Voir plus</button></div>" ) );
       $( "#seeMore" ).on( "click", () => {
-        countElem += 30; // Ajout de 30 au maximum d'élement à afficher
+        countElem += countElemPage; // Ajout de countElemPage au maximum d'élement à afficher
         webserviceRequest(); // Éxécution de la récupération et l'affichage avec les nouveaux paramètres
       } );
     }
@@ -152,7 +154,7 @@ $( document ).ready( () => {
   // Ajout d'un évenement de click sur le bouton de tri par date
   $( "#sortDate" ).on( "click", ( e ) => {
     orderAsc = !orderAsc; // change l'ordre a chaque appuie sur le bouton (ASC ou DESC)
-    countElem = 30; // Réinitialise le nombre d'élements maximum afficher avant d'avoir le bouton 'voir plus'
+    countElem = countElemPage; // Réinitialise le nombre d'élements maximum afficher avant d'avoir le bouton 'voir plus'
     const name = $( "#sortTitre" );
 
     // Gestion du style des deux boutons de tri
@@ -172,7 +174,7 @@ $( document ).ready( () => {
 
   $( "#sortTitre" ).on( "click", ( e ) => {
     orderAsc = !orderAsc; // change l'ordre a chaque appuie sur le bouton (ASC ou DESC)
-    countElem = 30; // Réinitialise le nombre d'élements maximum afficher avant d'avoir le bouton 'voir plus'
+    countElem = countElemPage; // Réinitialise le nombre d'élements maximum afficher avant d'avoir le bouton 'voir plus'
     const date = $( "#sortDate" );
 
     // Gestion du style des deux boutons de tri
@@ -192,7 +194,7 @@ $( document ).ready( () => {
   // Ajout de l'évenement keyup pour la recherche en temps réel
   $( " #search " ).on( "keyup", ( e ) => {
     e.preventDefault();
-    countElem = 30; // Réinitialise le nombre d'élements maximum afficher avant d'avoir le bouton 'voir plus'
+    countElem = countElemPage; // Réinitialise le nombre d'élements maximum afficher avant d'avoir le bouton 'voir plus'
     search = e.currentTarget.value.toLowerCase(); // Stocke le texte dans la variable global
 
     webserviceRequest(); // Éxécution de la récupération et l'affichage avec les nouveaux paramètres
