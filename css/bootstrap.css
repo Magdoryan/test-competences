@@ -10656,7 +10656,7 @@
    .btn-search-form {
     width:1.75rem;
     height:1.75rem;
-    background:url(/images/search.svg?641014545ee45bb156367edb385bf227) no-repeat 50%;
+    background:url(../medias/images/search.svg) no-repeat 50%;
     background-size:1.75rem 1.75rem;
     position:absolute;
     top:.625rem;

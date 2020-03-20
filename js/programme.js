@@ -1,8 +1,16 @@
-let isDate = true;
-let orderAsc = true;
-let search = "";
-let countElem = 30;
+// VARIABLES GLOBALES
 
+let isDate = true; // Boolean détection si tri par date (tri par défault)
+
+let orderAsc = true; // Boolean détection si tri croissant ASC ou décroissant DESC (tri par défault croissant)
+
+let search = $( " #search " )[ 0 ].value; // String correspondant au champ de recherche (gère le rafraîchissement de la page avec f5)
+
+let countElem = 30; // Nombre d'élement à afficher
+
+/**
+ * Fonction pour la gestion du Menu mobile et ordinateur
+ */
 function menu() {
   const principalMenu = $( "#fixedMenu" );
   let nice = false;
@@ -41,46 +49,32 @@ function menu() {
   } );
 }
 
-$( document ).ready( () => {
-  menu();
-  test( isDate );
+/**
+ * Fonction permettant de décodé une chaine string en html entities
+ * Renvoie la chaine décodé
+ */
+function decodeHTMLEntities( text ) {
+  return $( "<textarea/>" ).html( text ).text();
+}
 
-  $( "#sortDate" ).on( "click", ( e ) => {
-    orderAsc = !orderAsc;
-    countElem = 30;
-    const name = $( "#sortName" );
-    if ( name.hasClass( "asc" ) || name.hasClass( "desc" ) ) {
-      name.removeClass( "asc desc" );
-    }
-    if ( orderAsc ) {
-      $( e.currentTarget ).addClass( "asc" ).removeClass( "desc" );
-    } else {
-      $( e.currentTarget ).addClass( "desc" ).removeClass( "asc" );
-    }
-    isDate = true;
-    test( isDate );
-  } );
-
-  $( "#sortName" ).on( "click", ( e ) => {
-    orderAsc = !orderAsc;
-    countElem = 30;
-    const date = $( "#sortDate" );
-    if ( date.hasClass( "asc" ) || date.hasClass( "desc" ) ) {
-      date.removeClass( "asc desc" );
-    }
-    if ( orderAsc ) {
-      $( e.currentTarget ).addClass( "asc" ).removeClass( "desc" );
-    } else {
-      $( e.currentTarget ).addClass( "desc" ).removeClass( "asc" );
-    }
-    isDate = false;
-    test( isDate );
-  } );
-} );
-
-function test( isDate ) {
+/**
+ * Fonction permettant la récupération des données du webservice,
+ * le traitement des différents tri et de la recherche
+ * mais aussi de l'éxécution de la fonction d'affichage
+ */
+function webserviceRequest() {
   $.getJSON( "./index.json", ( data ) => {
-    const te = data.sort( ( a, b ) => {
+    let finalData = data;
+
+    // Verification du champ de recherche et éxécution du filtre de recherche sur la Description, le Titre et la Date
+    if ( search !== "" ) {
+      finalData = finalData.filter( ( elem ) => decodeHTMLEntities( elem.page_description.toLowerCase() ).includes( search ) ||
+      decodeHTMLEntities( elem.page_title.toLowerCase() ).includes( search ) ||
+      elem.event_date.includes( search ) );
+    }
+
+    // Éxécution du tri et de l'ordre choisie, tri sur le Jour et l'heure toujours croissante
+    finalData = finalData.sort( ( a, b ) => {
       if ( orderAsc ) {
         if ( isDate ) {
           return new Date( `${a.event_date} ${a.event_time_start}` ) - new Date( `${b.event_date} ${b.event_time_start}` );
@@ -93,41 +87,114 @@ function test( isDate ) {
       return b.page_title.localeCompare( a.page_title );
     } );
 
-    showElement( te.slice( countElem - 30, countElem ), te.length );
+    showElements( finalData.slice( countElem - 30, countElem ), finalData.length ); // Éxécution de la fonction d'affichage (affichage de 30 elements a chaque éxécution)
   } );
 }
 
-function showElement( data, lengthTotal ) {
-  $( "#seeMore" ).remove();
-  if ( countElem === 30 ) {
-    $( "#listProgram" ).empty();
-  }
+/**
+ * Fonction permettant l'affichage des élements
+ */
+function showElements( data, lengthTotal ) {
 
-
-  $.each( data, ( key, value ) => {
-
-    // let newElem = $( "<li class='col-md-4'></li>" );
-
-    const newCard = $( "<a class='card card-actualite' href='#'></a>" );
-    if ( value.page_front_image ) {
-      newCard.append( $( `<img src='https://www.bdangouleme.com${value.page_front_image}' alt="">` ) );
+  // On supprime le bouton 'voir plus' si il existe et on verifie l'appuie sur le bouton 'voir plus'
+  if ( $( "#seeMore" ) ) {
+    $( "#seeMore" ).remove();
+    if ( countElem === 30 ) {
+      $( "#listProgram" ).empty();
     }
-    const cardBody = $( "<div class='card-body'></div>" );
-    cardBody.append( $( `<h2 class="h3 card-title">${value.page_title}</h2>` ) );
-    cardBody.append( $( `<span class="date">${value.event_date} Debut: ${value.event_time_start} Fin: ${value.event_time_end}</span>` ) );
-    cardBody.append( $( `<div class="p card-text">${value.page_description}</div>` ) );
+  }
 
-    newCard.append( cardBody );
+  // Vérification pour savoir si des élements on étais trouvés
+  if ( lengthTotal === 0 ) {
+    $( "#listProgram" ).append( "<div class='h5 text-center mx-auto'><p>aucun élément correspondant trouvé.</p></div>" );
+  } else {
 
+    // Boucle sur les données et créer l'affichage
+    $.each( data, ( _key, value ) => {
+      const newCard = $( "<a class='card card-actualite' href='#'></a>" ); // Création de la Card
 
-    $( "#listProgram" ).append( $( "<div class='col-md-4'></div>" ).append( newCard ) );
-  } );
+      // Vérification d'existance d'une image
+      if ( value.page_front_image ) {
+        newCard.append( $( `<img src='https://www.bdangouleme.com${value.page_front_image}' alt="">` ) );
+      }
 
-  if ( lengthTotal - countElem > 0 ) {
-    $( "#listProgram" ).append( $( "<button id='seeMore' class='btn btn-filtre btn-outline-primary mx-auto'>Voir plus</button>" ) );
-    $( "#seeMore" ).on( "click", ( e ) => {
-      countElem += 30;
-      test( isDate );
+      // Création du body de la Card
+      const cardBody = $( "<div class='card-body'></div>" );
+      cardBody.append( $( `<h2 class="h3 card-title">${value.page_title}</h2>` ) );
+      cardBody.append( $( `<span class="date">${value.event_date} Debut: ${value.event_time_start} Fin: ${value.event_time_end}</span>` ) );
+      cardBody.append( $( `<div class="p card-text">${value.page_description}</div>` ) );
+
+      newCard.append( cardBody ); // Ajout du body a la l'element Card
+
+      $( "#listProgram" ).append( $( "<div class='col-md-4'></div>" ).append( newCard ) ); // Ajout de la card a notre liste
     } );
+
+    // Verification du nombre d'element afficher et à afficher pour savoir
+    // si un bouton voir plus est nécessaire (30 elements ajoutés à chaque éxécution)
+    if ( lengthTotal - countElem > 0 ) {
+      $( "#listProgram" ).append( $( "<button id='seeMore' class='btn btn-filtre btn-outline-primary mx-auto'>Voir plus</button>" ) );
+      $( "#seeMore" ).on( "click", () => {
+        countElem += 30; // Ajout de 30 au maximum d'élement à afficher
+        webserviceRequest(); // Éxécution de la récupération et l'affichage avec les nouveaux paramètres
+      } );
+    }
   }
 }
+
+/**
+ * Éxécution des fonctions et ajout des évenements lorsque le DOM est totalement chargé
+ */
+$( document ).ready( () => {
+  menu(); // Éxécution de la fonction qui gère le menu
+
+  webserviceRequest(); // Éxécution de la récupération et l'affichage avec les paramètres de départ
+
+  // Ajout d'un évenement de click sur le bouton de tri par date
+  $( "#sortDate" ).on( "click", ( e ) => {
+    orderAsc = !orderAsc; // change l'ordre a chaque appuie sur le bouton (ASC ou DESC)
+    countElem = 30; // Réinitialise le nombre d'élements maximum afficher avant d'avoir le bouton 'voir plus'
+    const name = $( "#sortTitre" );
+
+    // Gestion du style des deux boutons de tri
+    if ( name.hasClass( "asc" ) || name.hasClass( "desc" ) ) {
+      name.removeClass( "asc desc" );
+    }
+    if ( orderAsc ) {
+      $( e.currentTarget ).addClass( "asc" ).removeClass( "desc" );
+    } else {
+      $( e.currentTarget ).addClass( "desc" ).removeClass( "asc" );
+    }
+
+    isDate = true; // Passe la variable a true pour dire que nous trions par date
+
+    webserviceRequest(); // Éxécution de la récupération et l'affichage avec les nouveaux paramètres
+  } );
+
+  $( "#sortTitre" ).on( "click", ( e ) => {
+    orderAsc = !orderAsc; // change l'ordre a chaque appuie sur le bouton (ASC ou DESC)
+    countElem = 30; // Réinitialise le nombre d'élements maximum afficher avant d'avoir le bouton 'voir plus'
+    const date = $( "#sortDate" );
+
+    // Gestion du style des deux boutons de tri
+    if ( date.hasClass( "asc" ) || date.hasClass( "desc" ) ) {
+      date.removeClass( "asc desc" );
+    }
+    if ( orderAsc ) {
+      $( e.currentTarget ).addClass( "asc" ).removeClass( "desc" );
+    } else {
+      $( e.currentTarget ).addClass( "desc" ).removeClass( "asc" );
+    }
+    isDate = false; // Passe la variable a false pour dire que nous trions par Titre
+
+    webserviceRequest(); // Éxécution de la récupération et l'affichage avec les nouveaux paramètres
+  } );
+
+  // Ajout de l'évenement keyup pour la recherche en temps réel
+  $( " #search " ).on( "keyup", ( e ) => {
+    e.preventDefault();
+    countElem = 30; // Réinitialise le nombre d'élements maximum afficher avant d'avoir le bouton 'voir plus'
+    search = e.currentTarget.value.toLowerCase(); // Stocke le texte dans la variable global
+
+    webserviceRequest(); // Éxécution de la récupération et l'affichage avec les nouveaux paramètres
+  } );
+} );

@@ -396,11 +396,17 @@
     <main class="container">
         <section>
             <div class="h1 title-underline">Recherche</div>
+            <div class="form-group form-search">
+                <label class="btn btn-search"></label>
+                <input type="search" class="form-control form-filtre" id="search" name="search" placeholder="Recherche" value="">
+            </div>
         </section>
         <section>
             <div class="h1 title-underline">Tri</div>
-            <button id="sortName" class="btn btn-filtre btn-outline-primary">Nom</button>
-            <button id="sortDate" class="btn btn-filtre btn-outline-primary asc">Date</button>
+            <div class="btn-group-filtre">
+                <button id="sortTitre" class="btn btn-filtre btn-outline-primary">Titre</button>
+                <button id="sortDate" class="btn btn-filtre btn-outline-primary asc">Date</button>
+            </div>
         </section>
         <div id="listProgram" class="row"></div>
     </main>
@@ -457,7 +463,7 @@
     <!--script JS-->
     <script src="./js/vendor/jquery-3.4.1.min.js"></script>
     <script src="./js/vendor/jquery.nicescroll.min.js"></script>
-    <script src="./js/vendor/bootstrap.min.js"></script>
-    <script src="./js/programme.js"></script>
+    <script src="./js/vendor/bootstrap.min.js" charset="utf-8"></script>
+    <script src="./js/programme.js" charset="utf-8"></script>
 </body>
 </html>
